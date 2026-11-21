@@ -25,7 +25,7 @@
 | [`aws_bedrock_llmjacking_recon.yml`](aws_bedrock_llmjacking_recon.yml) | Bedrock logging checks, model-access enablement after credential theft | AWS CloudTrail | medium | T1496, T1562.008 |
 | ↳ (second rule in file) | Bedrock invocation logging deleted | AWS CloudTrail | high | T1562.008 |
 | [`web_llm_gateway_admin_key_endpoints.yml`](web_llm_gateway_admin_key_endpoints.yml) | LiteLLM-style key/user endpoints hit from outside admin network | Web server | high | T1190 |
-| [`proc_ai_agent_reads_secrets.yml`](proc_ai_agent_reads_secrets.yml) | AI coding agent / MCP server spawns process touching SSH keys, cloud creds, `.env` | Process creation | high | T1552.001, T1552.004 |
+| [`proc_ai_agent_credential_file_access.yml`](proc_ai_agent_credential_file_access.yml) | AI coding agent / MCP server spawns process touching SSH keys, cloud creds, `.env` | Process creation | high | T1552.001, T1552.004 |
 | [`net_ai_agent_exfil_destinations.yml`](net_ai_agent_exfil_destinations.yml) | Agent runtimes connecting to webhook / tunnel / paste services | Network connection | medium | T1567 |
 | [`file_mcp_config_modified.yml`](file_mcp_config_modified.yml) | MCP client config created or changed (new tools for your agent) | File event | low | T1546 |
 | [`web_exposed_ollama_model_tampering.yml`](web_exposed_ollama_model_tampering.yml) | Ollama pull/create/push/delete from external IPs | Proxy | high | T1190 |
@@ -38,7 +38,7 @@ Each rule links to the matching play in [ai-attack-playbook](https://github.com/
 pip install sigma-cli
 sigma plugin install splunk          # or: microsoft365defender, elasticsearch, ...
 
-sigma convert -t splunk -p sysmon proc_ai_agent_reads_secrets.yml
+sigma convert -t splunk -p sysmon proc_ai_agent_credential_file_access.yml
 sigma convert -t lucene -p ecs_windows net_ai_agent_exfil_destinations.yml
 ```
 
@@ -46,7 +46,7 @@ sigma convert -t lucene -p ecs_windows net_ai_agent_exfil_destinations.yml
 
 ## Tuning notes
 
-- **`proc_ai_agent_reads_secrets`**: matching on `ParentCommandLine` keeps it generic across Claude Code, Cursor, Copilot, Gemini CLI and MCP servers. If your EDR records the full process tree, anchor on the agent's root process instead.
+- **`proc_ai_agent_credential_file_access`**: matching on `ParentCommandLine` keeps it generic across Claude Code, Cursor, Copilot, Gemini CLI and MCP servers. If your EDR records the full process tree, anchor on the agent's root process instead.
 - **`web_llm_gateway_admin_key_endpoints`**: replace the private CIDR filter with your actual admin jump-host ranges.
 - **`net_ai_agent_exfil_destinations`**: expect noise on developer machines that test webhooks; suppress per user, not globally.
 - **`file_mcp_config_modified`**: low on its own; raise severity when the writing process is not the IDE/client itself, or chain it with [mcp-audit](https://github.com/Nexqor/mcp-audit) to inspect the new config automatically.
