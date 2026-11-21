@@ -1,0 +1,60 @@
+title: AWS Bedrock LLMjacking Reconnaissance and Model Access Enablement
+id: 6c1a9e2f-4b7d-4f3a-9c21-8e5d3b0a7f11
+status: experimental
+description: |
+  Detects CloudTrail API calls commonly seen when stolen AWS credentials are used to hijack
+  Bedrock models (LLMjacking): checking whether prompts are logged, disabling that logging,
+  and enabling or accepting access to foundation models that the account did not use before.
+references:
+  - https://github.com/Nexqor/ai-attack-playbook/blob/main/08-llmjacking.md
+author: Nexqor
+date: 2026-11-21
+tags:
+  - attack.discovery
+  - attack.defense-evasion
+  - attack.t1562.008
+  - attack.t1496
+logsource:
+  product: aws
+  service: cloudtrail
+detection:
+  selection_source:
+    eventSource: bedrock.amazonaws.com
+  selection_recon:
+    eventName:
+      - GetModelInvocationLoggingConfiguration
+      - ListFoundationModels
+  selection_change:
+    eventName:
+      - DeleteModelInvocationLoggingConfiguration
+      - PutUseCaseForModelAccess
+      - CreateFoundationModelAgreement
+      - PutFoundationModelEntitlement
+  condition: selection_source and (selection_change or selection_recon)
+falsepositives:
+  - Administrators onboarding Bedrock for the first time
+  - Infrastructure-as-code pipelines enabling new models
+level: medium
+---
+title: AWS Bedrock Model Invocation Logging Disabled
+id: 0f3e7d21-9a4c-4c88-b1e2-5d6a7c8b9e02
+status: experimental
+description: Detects removal of Bedrock model invocation logging, which hides prompts and responses from defenders.
+references:
+  - https://github.com/Nexqor/ai-attack-playbook/blob/main/08-llmjacking.md
+author: Nexqor
+date: 2026-11-21
+tags:
+  - attack.defense-evasion
+  - attack.t1562.008
+logsource:
+  product: aws
+  service: cloudtrail
+detection:
+  selection:
+    eventSource: bedrock.amazonaws.com
+    eventName: DeleteModelInvocationLoggingConfiguration
+  condition: selection
+falsepositives:
+  - Planned logging reconfiguration (should be change-managed)
+level: high

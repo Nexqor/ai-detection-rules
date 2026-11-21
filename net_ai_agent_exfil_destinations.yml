@@ -1,0 +1,44 @@
+title: AI Agent Runtime Connects to Common Exfiltration Endpoint
+id: 7a5c3e1d-2b4f-4a6c-9e8d-1f0a2b3c4d55
+status: experimental
+description: |
+  Detects network connections from AI agent runtimes (Node.js / Python processes used by coding agents and
+  MCP servers) to request-capture, tunneling and paste services frequently used to receive data stolen
+  through prompt injection.
+references:
+  - https://github.com/Nexqor/ai-attack-playbook/blob/main/02-indirect-prompt-injection.md
+author: Nexqor
+date: 2026-11-21
+tags:
+  - attack.exfiltration
+  - attack.t1567
+logsource:
+  category: network_connection
+detection:
+  selection_runtime:
+    Image|endswith:
+      - '\node.exe'
+      - '/node'
+      - '\python.exe'
+      - '/python3'
+      - '\uv.exe'
+      - '/uv'
+      - '\bun.exe'
+      - '/bun'
+  selection_dest:
+    DestinationHostname|endswith:
+      - 'webhook.site'
+      - 'requestbin.net'
+      - 'pipedream.net'
+      - 'ngrok-free.app'
+      - 'ngrok.io'
+      - 'trycloudflare.com'
+      - 'pastebin.com'
+      - 'paste.ee'
+      - 'transfer.sh'
+      - 'interact.sh'
+      - 'oast.fun'
+  condition: selection_runtime and selection_dest
+falsepositives:
+  - Developers testing webhooks with these services
+level: medium

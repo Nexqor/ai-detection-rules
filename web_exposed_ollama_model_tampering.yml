@@ -1,0 +1,36 @@
+title: Ollama Model Management API Called From External Address
+id: 5f7b9d1e-3a2c-4e6f-b8a0-9c1d2e3f4a77
+status: experimental
+description: |
+  Detects requests to Ollama's model management endpoints (pull, create, push, delete, copy) from
+  non-private addresses. Exposed Ollama instances are scanned by AI-key and compute hunters; these
+  endpoints let a remote party load, replace or delete models.
+references:
+  - https://github.com/Nexqor/ai-attack-playbook/blob/main/07-model-supply-chain.md
+  - https://thehackernews.com/2026/11/amazon-uncovers-ai-agent-campaign.html
+author: Nexqor
+date: 2026-11-21
+tags:
+  - attack.initial-access
+  - attack.impact
+  - attack.t1190
+logsource:
+  category: proxy
+detection:
+  selection:
+    cs-uri-stem|contains:
+      - '/api/pull'
+      - '/api/create'
+      - '/api/push'
+      - '/api/delete'
+      - '/api/copy'
+  filter_private:
+    src_ip|cidr:
+      - '127.0.0.0/8'
+      - '10.0.0.0/8'
+      - '172.16.0.0/12'
+      - '192.168.0.0/16'
+  condition: selection and not filter_private
+falsepositives:
+  - Ollama deliberately exposed behind an authenticated reverse proxy for remote admins
+level: high

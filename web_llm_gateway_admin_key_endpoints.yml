@@ -1,0 +1,36 @@
+title: LLM Gateway Key Management Endpoint Accessed
+id: 9b2d4c6e-1f3a-4e5b-8c7d-2a1b0c9d8e33
+status: experimental
+description: |
+  Detects requests to key-management and user-provisioning endpoints of LLM gateways such as LiteLLM.
+  Attackers hunting AI provider keys target these endpoints to mint or regenerate keys and escalate
+  to admin. Alert when these are reached from outside your admin network.
+references:
+  - https://github.com/Nexqor/ai-attack-playbook/blob/main/08-llmjacking.md
+  - https://thehackernews.com/2026/11/amazon-uncovers-ai-agent-campaign.html
+author: Nexqor
+date: 2026-11-21
+tags:
+  - attack.credential-access
+  - attack.privilege-escalation
+  - attack.t1190
+logsource:
+  category: webserver
+detection:
+  selection:
+    cs-uri-stem|contains:
+      - '/key/generate'
+      - '/key/regenerate'
+      - '/key/update'
+      - '/user/new'
+      - '/team/new'
+      - '/global/spend'
+  filter_admin_net:
+    c-ip|cidr:
+      - '10.0.0.0/8'
+      - '172.16.0.0/12'
+      - '192.168.0.0/16'
+  condition: selection and not filter_admin_net
+falsepositives:
+  - Legitimate admin access from outside the listed ranges (adjust the filter to your admin network)
+level: high

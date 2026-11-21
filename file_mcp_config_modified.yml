@@ -1,0 +1,35 @@
+title: MCP Client Configuration Created or Modified
+id: 2d4f6a8c-0e1b-4c3d-8f5a-7b9c1d2e3f66
+status: experimental
+description: |
+  Detects writes to MCP client configuration files. A new or changed MCP server entry gives an AI agent
+  new tools; attackers (and worms planting configs in repositories) use this to add malicious servers.
+  Pair with mcp-audit to review the resulting config.
+references:
+  - https://github.com/Nexqor/ai-attack-playbook/blob/main/09-mcp-tool-poisoning.md
+  - https://github.com/Nexqor/mcp-audit
+author: Nexqor
+date: 2026-11-21
+tags:
+  - attack.persistence
+  - attack.t1546
+logsource:
+  category: file_event
+detection:
+  selection:
+    TargetFilename|endswith:
+      - '\Claude\claude_desktop_config.json'
+      - '/Claude/claude_desktop_config.json'
+      - '\.cursor\mcp.json'
+      - '/.cursor/mcp.json'
+      - '\.vscode\mcp.json'
+      - '/.vscode/mcp.json'
+      - '\.mcp.json'
+      - '/.mcp.json'
+      - '\windsurf\mcp_config.json'
+      - '/windsurf/mcp_config.json'
+  condition: selection
+falsepositives:
+  - Users adding MCP servers intentionally through the client UI
+  - Cloning repositories that ship an MCP config (still worth reviewing)
+level: low
